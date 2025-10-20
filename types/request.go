@@ -19,3 +19,29 @@ type InsertManyRequest struct {
 	Collection string                   `json:"collection"`
 	Data       []map[string]interface{} `json:"data"`
 }
+
+type UpdateOneRequest struct {
+	Database   string                 `json:"database"`
+	Collection string                 `json:"collection"`
+	ObjectId   string                 `json:"objectId"`
+	Data       map[string]interface{} `json:"data"`
+}
+
+type UpdateManyRequest struct {
+	Database   string                 `json:"database"`
+	Collection string                 `json:"collection"`
+	Filter     bson.D                 `json:"filter,omitempty"`
+	Data       map[string]interface{} `json:"data"`
+}
+
+type DeleteOneRequest struct {
+	Database   string `json:"database"`
+	Collection string `json:"collection"`
+	ObjectId   string `json:"objectId"`
+}
+
+type DeleteManyRequest struct {
+	Database   string `json:"database"`
+	Collection string `json:"collection"`
+	Filter     bson.D `json:"filter,omitempty"`
+}

@@ -95,3 +95,72 @@ func InsertMany(request types.InsertManyRequest) (*mongo.InsertManyResult, error
 	}
 	return result, nil
 }
+
+func UpdateOne(request types.UpdateOneRequest) (*mongo.UpdateResult, error) {
+	collection := Client.Database(request.Database).Collection(request.Collection)
+
+	objId, err := bson.ObjectIDFromHex(request.ObjectId)
+	if err != nil {
+		log.Printf("Error converting object ID: %v", err)
+		return nil, err
+	}
+	update := bson.D{{Key: "$set", Value: request.Data}}
+
+	result, err := collection.UpdateByID(context.TODO(), objId, update)
+	if err != nil {
+		log.Printf("Error updating document: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func UpdateMany(request types.UpdateManyRequest) (*mongo.UpdateResult, error) {
+	collection := Client.Database(request.Database).Collection(request.Collection)
+
+	filter := request.Filter
+	if filter == nil {
+		filter = bson.D{}
+	}
+	update := bson.D{{Key: "$set", Value: request.Data}}
+
+	result, err := collection.UpdateMany(context.TODO(), filter, update)
+	if err != nil {
+		log.Printf("Error updating documents: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func DeleteOne(request types.DeleteOneRequest) (*mongo.DeleteResult, error) {
+	collection := Client.Database(request.Database).Collection(request.Collection)
+
+	objId, err := bson.ObjectIDFromHex(request.ObjectId)
+	if err != nil {
+		log.Printf("Error converting object ID: %v", err)
+		return nil, err
+	}
+	filter := bson.D{{Key: "_id", Value: objId}}
+
+	result, err := collection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		log.Printf("Error deleting document: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func DeleteMany(request types.DeleteManyRequest) (*mongo.DeleteResult, error) {
+	collection := Client.Database(request.Database).Collection(request.Collection)
+
+	filter := request.Filter
+	if filter == nil {
+		filter = bson.D{}
+	}
+
+	result, err := collection.DeleteMany(context.TODO(), filter)
+	if err != nil {
+		log.Printf("Error deleting documents: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
