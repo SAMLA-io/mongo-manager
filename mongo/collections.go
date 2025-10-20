@@ -74,17 +74,23 @@ func GetOne(request types.Request) (bson.M, error) {
 	return doc, nil
 }
 
-func InsertOne(request types.Request) (*mongo.InsertOneResult, error) {
+func InsertOne(request types.InsertOneRequest) (*mongo.InsertOneResult, error) {
 	collection := Client.Database(request.Database).Collection(request.Collection)
 
-	doc := request.Data
-	if doc == nil {
-		doc = bson.M{}
-	}
-
-	result, err := collection.InsertOne(context.TODO(), doc)
+	result, err := collection.InsertOne(context.TODO(), request.Data)
 	if err != nil {
 		log.Printf("Error inserting document: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func InsertMany(request types.InsertManyRequest) (*mongo.InsertManyResult, error) {
+	collection := Client.Database(request.Database).Collection(request.Collection)
+
+	result, err := collection.InsertMany(context.TODO(), request.Data)
+	if err != nil {
+		log.Printf("Error inserting documents: %v", err)
 		return nil, err
 	}
 	return result, nil
