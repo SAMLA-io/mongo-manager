@@ -14,14 +14,14 @@ func main() {
 
 	// V1 API
 
-	http.Handle("/v1/get-all", auth.VerifyingMiddleware(http.HandlerFunc(v1.GetAll)))
-	http.Handle("/v1/get-one", auth.VerifyingMiddleware(http.HandlerFunc(v1.GetOne)))
-	http.Handle("/v1/insert-one", auth.VerifyingMiddleware(http.HandlerFunc(v1.InsertOne)))
-	http.Handle("/v1/insert-many", auth.VerifyingMiddleware(http.HandlerFunc(v1.InsertMany)))
-	http.Handle("/v1/update-one", auth.VerifyingMiddleware(http.HandlerFunc(v1.UpdateOne)))
-	http.Handle("/v1/update-many", auth.VerifyingMiddleware(http.HandlerFunc(v1.UpdateMany)))
-	http.Handle("/v1/delete-one", auth.VerifyingMiddleware(http.HandlerFunc(v1.DeleteOne)))
-	http.Handle("/v1/delete-many", auth.VerifyingMiddleware(http.HandlerFunc(v1.DeleteMany)))
+	http.Handle("/v1/get-all", auth.TestingMiddleware(http.HandlerFunc(v1.GetAll)))
+	http.Handle("/v1/get-one", auth.TestingMiddleware(http.HandlerFunc(v1.GetOne)))
+	http.Handle("/v1/insert-one", auth.TestingMiddleware(http.HandlerFunc(v1.InsertOne)))
+	http.Handle("/v1/insert-many", auth.TestingMiddleware(http.HandlerFunc(v1.InsertMany)))
+	http.Handle("/v1/update-one", auth.TestingMiddleware(http.HandlerFunc(v1.UpdateOne)))
+	http.Handle("/v1/update-many", auth.TestingMiddleware(http.HandlerFunc(v1.UpdateMany)))
+	http.Handle("/v1/delete-one", auth.TestingMiddleware(http.HandlerFunc(v1.DeleteOne)))
+	http.Handle("/v1/delete-many", auth.TestingMiddleware(http.HandlerFunc(v1.DeleteMany)))
 
 	server := &http.Server{
 		Addr:         ":8080",
@@ -31,6 +31,7 @@ func main() {
 		Handler:      http.DefaultServeMux,
 	}
 
+	log.Printf("Server is running on port %s", server.Addr)
 	log.Fatal(server.ListenAndServe())
 }
 
