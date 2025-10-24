@@ -31,7 +31,12 @@ func GetOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	request := GetRequest(r)
+	request := GetOneRequest(r)
+	if request.Database == "" || request.Collection == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Database, collection and filter are required"})
+		return
+	}
 
 	doc, err := mongo.GetOne(request)
 
@@ -51,6 +56,11 @@ func InsertOne(w http.ResponseWriter, r *http.Request) {
 	}
 
 	request := GetInsertOneRequest(r)
+	if request.Database == "" || request.Collection == "" || request.Data == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Database, collection and data are required"})
+		return
+	}
 
 	result, err := mongo.InsertOne(request)
 	if err != nil {
@@ -69,6 +79,11 @@ func InsertMany(w http.ResponseWriter, r *http.Request) {
 	}
 
 	request := GetInsertManyRequest(r)
+	if request.Database == "" || request.Collection == "" || request.Data == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Database, collection and data are required"})
+		return
+	}
 
 	result, err := mongo.InsertMany(request)
 	if err != nil {
@@ -87,6 +102,11 @@ func UpdateOne(w http.ResponseWriter, r *http.Request) {
 	}
 
 	request := GetUpdateOneRequest(r)
+	if request.Database == "" || request.Collection == "" || request.ObjectId == "" || request.Data == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Database, collection, objectId and data are required"})
+		return
+	}
 
 	result, err := mongo.UpdateOne(request)
 	if err != nil {
@@ -105,6 +125,11 @@ func UpdateMany(w http.ResponseWriter, r *http.Request) {
 	}
 
 	request := GetUpdateManyRequest(r)
+	if request.Database == "" || request.Collection == "" || request.Data == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Database, collection and data are required"})
+		return
+	}
 
 	result, err := mongo.UpdateMany(request)
 	if err != nil {
@@ -123,10 +148,16 @@ func DeleteOne(w http.ResponseWriter, r *http.Request) {
 	}
 
 	request := GetDeleteOneRequest(r)
+	if request.Database == "" || request.Collection == "" || request.ObjectId == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Database, collection and objectId are required"})
+		return
+	}
 
 	result, err := mongo.DeleteOne(request)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Error deleting document: " + err.Error()})
 		return
 	}
 
@@ -141,6 +172,11 @@ func DeleteMany(w http.ResponseWriter, r *http.Request) {
 	}
 
 	request := GetDeleteManyRequest(r)
+	if request.Database == "" || request.Collection == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Database and collection are required"})
+		return
+	}
 
 	result, err := mongo.DeleteMany(request)
 	if err != nil {

@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/json"
+	"log"
 	"mongo-manager/types"
 	"net/http"
 	"strings"
@@ -36,8 +37,27 @@ func GetRequest(r *http.Request) types.Request {
 	collection := r.URL.Query().Get("collection")
 
 	var requestBody types.Request
+	json.NewDecoder(r.Body).Decode(&requestBody)
+
+	return types.Request{
+		Database:   database,
+		Collection: collection,
+		Filter:     requestBody.Filter,
+	}
+}
+
+func GetOneRequest(r *http.Request) types.Request {
+
+	database := r.URL.Query().Get("database")
+	collection := r.URL.Query().Get("collection")
+
+	var requestBody types.Request
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
+		return types.Request{}
+	}
+
+	if requestBody.Filter == nil {
 		return types.Request{}
 	}
 
@@ -96,12 +116,17 @@ func GetUpdateOneRequest(r *http.Request) types.UpdateOneRequest {
 		return types.UpdateOneRequest{}
 	}
 
-	return types.UpdateOneRequest{
+	request := types.UpdateOneRequest{
 		Database:   database,
 		Collection: collection,
 		ObjectId:   objectId,
 		Data:       requestBody.Data,
 	}
+
+	log.Printf("Request: %+v", request)
+
+	return request
+
 }
 
 func GetUpdateManyRequest(r *http.Request) types.UpdateManyRequest {
