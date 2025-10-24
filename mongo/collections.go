@@ -54,6 +54,11 @@ func GetAll(request types.Request) ([]bson.M, error) {
 		log.Printf("Error decoding documents: %v", err)
 		return nil, err
 	}
+
+	if len(docs) == 0 {
+		return []bson.M{}, nil
+	}
+
 	return docs, nil
 }
 
@@ -67,10 +72,16 @@ func GetOne(request types.Request) (bson.M, error) {
 
 	doc := bson.M{}
 	err := collection.FindOne(context.TODO(), filter).Decode(&doc)
+
+	if err == mongo.ErrNoDocuments {
+		return bson.M{}, nil
+	}
+
 	if err != nil {
 		log.Printf("Error finding document: %v", err)
-		return nil, err
+		return bson.M{}, err
 	}
+
 	return doc, nil
 }
 
@@ -106,7 +117,7 @@ func UpdateOne(request types.UpdateOneRequest) (*mongo.UpdateResult, error) {
 	}
 	update := bson.D{{Key: "$set", Value: request.Data}}
 
-	result, err := collection.UpdateByID(context.TODO(), objId, update)
+	result, err := collection.UpdateOne(context.TODO(), bson.M{"_id": objId}, update)
 	if err != nil {
 		log.Printf("Error updating document: %v", err)
 		return nil, err
@@ -139,9 +150,8 @@ func DeleteOne(request types.DeleteOneRequest) (*mongo.DeleteResult, error) {
 		log.Printf("Error converting object ID: %v", err)
 		return nil, err
 	}
-	filter := bson.D{{Key: "_id", Value: objId}}
 
-	result, err := collection.DeleteOne(context.TODO(), filter)
+	result, err := collection.DeleteOne(context.TODO(), bson.M{"_id": objId})
 	if err != nil {
 		log.Printf("Error deleting document: %v", err)
 		return nil, err
@@ -155,6 +165,30 @@ func DeleteMany(request types.DeleteManyRequest) (*mongo.DeleteResult, error) {
 	filter := request.Filter
 	if filter == nil {
 		filter = bson.D{}
+	}
+
+	// Convert string _id to ObjectID if present
+	// Convert bson.D to bson.M for easier manipulation
+	filterMap := bson.M{}
+	for _, elem := range filter {
+		filterMap[elem.Key] = elem.Value
+	}
+
+	if idValue, exists := filterMap["_id"]; exists {
+		if idStr, ok := idValue.(string); ok {
+			objId, err := bson.ObjectIDFromHex(idStr)
+			if err != nil {
+				log.Printf("Error converting object ID: %v", err)
+				return nil, err
+			}
+			filterMap["_id"] = objId
+		}
+	}
+
+	// Convert back to bson.D
+	filter = bson.D{}
+	for key, value := range filterMap {
+		filter = append(filter, bson.E{Key: key, Value: value})
 	}
 
 	result, err := collection.DeleteMany(context.TODO(), filter)
